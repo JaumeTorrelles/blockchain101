@@ -1,5 +1,5 @@
 const { GENESIS_DATA } = require("./config");
-const hashOf = require('./hashOf')
+const hashOf = require('./hashOf');
 
 class Block {
     constructor( { timestamp, lastHash, hash, data } ){
