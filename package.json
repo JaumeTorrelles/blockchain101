@@ -20,5 +20,8 @@
   "homepage": "https://github.com/JaumeTorrelles/blockchain101#readme",
   "devDependencies": {
     "jest": "^30.1.3"
+  },
+  "dependencies": {
+    "hex-to-binary": "^1.0.1"
   }
 }
