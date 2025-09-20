@@ -1,5 +1,5 @@
-const Block = require('./block');
-const { GENESIS_DATA } = require('./config');
+const Block = require('../blockchain/block');
+const { GENESIS_DATA } = require('../config');
 const hashOf = require('./hashOf')
 
 describe('hashOf()', () => {

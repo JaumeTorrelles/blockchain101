@@ -1,6 +1,6 @@
 const hexToBinary = require('hex-to-binary');
-const { GENESIS_DATA, MINE_RATE } = require("./config");
-const hashOf = require('./hashOf');
+const { GENESIS_DATA, MINE_RATE } = require("../config");
+const hashOf = require('../util/hashOf');
 
 class Block {
     constructor( { timestamp, lastHash, hash, data, nonce, difficulty } ){
