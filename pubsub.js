@@ -1,8 +1,6 @@
 const redis = require('redis');
-const TEST = require("node:test");
 
 const CHANNELS = {
-    TEST: 'TEST',
     BLOCKCHAIN: 'BLOCKCHAIN'
 }
 
@@ -35,7 +33,11 @@ class PubSub {
     }
 
     publish({ channel, message }) {
-        this.publisher.publish(channel, message);
+        this.subscriber.unsubscribe(channel, () => {
+            this.publisher.publish(channel, message, () => {
+                this.subscriber.subscribe(channel);
+            });
+        });
     }
 
     broadcastChain(){
