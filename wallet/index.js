@@ -1,14 +1,20 @@
 const { STARTING_BALANCE } = require('../config');
-const { ec } = require('../util');
+const { ec } = require('../utils');
+const hashOf = require('../utils/hashOf');
 
 class Wallet {
     constructor() {
         this.balance = STARTING_BALANCE;
 
-        const keyPair = ec.genKeyPair();
+        this.keyPair = ec.genKeyPair();
 
-        this.publicKey = keyPair.getPublic().encode('hex');
+        this.publicKey = this.keyPair.getPublic().encode('hex');
     }
+
+    sign(data) {
+        return this.keyPair.sign(hashOf(data))
+    }
+
 }
 
 module.exports = Wallet;

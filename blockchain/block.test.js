@@ -2,7 +2,7 @@ const hexToBinary = require('hex-to-binary');
 
 const Block = require("./block");
 const { GENESIS_DATA, MINE_RATE } = require("../config");
-const hashOf = require('../util/hashOf')
+const hashOf = require('../utils/hashOf')
 
 
 describe('Block', () => {
