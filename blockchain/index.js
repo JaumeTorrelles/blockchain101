@@ -1,5 +1,5 @@
 const Block = require('./block');
-const hashOf = require('../utils/hashOf');
+const { hashOf } = require('../utils');
 
 class Blockchain {
     constructor() {

@@ -1,4 +1,4 @@
-const MINE_RATE = 1000; //1000ms wich is 1sec
+const MINE_RATE = 1000; //1000ms which is 1sec
 const INITIAL_DIFFICULTY = 1;
 
 
