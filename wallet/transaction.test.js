@@ -164,5 +164,6 @@ describe ('Transaction', () => {
         it('creates one transaction for the miner with the mining reward', () => {
             expect(rewardTransaction.outputMap[minerWallet.publicKey]).toEqual(MINING_REWARD);
         });
-    })
+    });
+
 });
