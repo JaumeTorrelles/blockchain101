@@ -1,0 +1,30 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="cryptoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#3B82F6"/>
+            <stop offset="50%" stop-color="#8B5CF6"/>
+            <stop offset="100%" stop-color="#06B6D4"/>
+        </linearGradient>
+    </defs>
+
+    <!-- Shield shape for security + crypto elements -->
+    <path d="M60,10 L110,30 L110,80 L60,110 L10,80 L10,30 Z"
+          fill="none"
+          stroke="url(#cryptoGradient)"
+          stroke-width="3"/>
+
+    <!-- Bitcoin-style B with blockchain dots -->
+    <path d="M45,45 Q60,35 75,45 Q60,55 45,45 Z"
+          fill="none"
+          stroke="url(#cryptoGradient)"
+          stroke-width="2"/>
+
+    <!-- Blockchain nodes -->
+    <circle cx="40" cy="65" r="3" fill="url(#cryptoGradient)"/>
+    <circle cx="60" cy="70" r="3" fill="url(#cryptoGradient)"/>
+    <circle cx="80" cy="65" r="3" fill="url(#cryptoGradient)"/>
+
+    <!-- Connecting lines -->
+    <line x1="40" y1="65" x2="60" y2="70" stroke="url(#cryptoGradient)" stroke-width="1.5"/>
+    <line x1="60" y1="70" x2="80" y2="65" stroke="url(#cryptoGradient)" stroke-width="1.5"/>
+</svg>

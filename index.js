@@ -1,6 +1,8 @@
 const bodyParser = require('body-parser');
 const express = require('express');
 const request = require('request');
+const path = require('path');
+const cors = require('cors');
 const Blockchain = require('./blockchain');
 const PubSub = require('./app/pubsub');
 const TransactionPool = require('./wallet/transactionPool');
@@ -17,7 +19,9 @@ const transactionMiner = new TransactionMiner({ blockchain, transactionPool, wal
 const DEFAULT_PORT = 3000;
 const ROOT_NODE_ADDRESS = `http://localhost:${DEFAULT_PORT}`;
 
+app.use(cors());
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'client/dist')));
 
 app.get('/api/blocks', (req, res) => {
     res.json(blockchain.chain);
@@ -71,7 +75,20 @@ app.get('/api/walletInfo', (req, res) => {
     res.json({address, balance: Wallet.calculateBalance({ chain: blockchain.chain, address })});
 });
 
-const syncChains = () => {
+app.get('/{*splat}', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client/dist/index.html'));
+});
+
+const syncWithRootState = () => {
+    request({ url: `${ROOT_NODE_ADDRESS}/api/blocks` }, (error, response, body) => {
+        if (!error && response.statusCode === 200) {
+            const rootChain = JSON.parse(body);
+
+            console.log('replace chain on a sync with', rootChain);
+            blockchain.replaceChain(rootChain);
+        }
+    });
+
     request({ url: `${ROOT_NODE_ADDRESS}/api/blocks` }, (error, response, body) => {
         if (!error && response.statusCode === 200) {
             const rootChain = JSON.parse(body);
@@ -81,6 +98,36 @@ const syncChains = () => {
         }
     });
 };
+
+const wallet2 = new Wallet();
+const wallet3 = new Wallet();
+
+const generateWalletTransaction = ({ recipient, amount }) => {
+    const transaction = new Wallet().createTransaction({ recipient, amount, chain: blockchain.chain });
+
+    transactionPool.setTransaction(transaction);
+};
+
+const walletAction = () => generateWalletTransaction({ wallet, recipient: wallet2.publicKey, amount: 10 });
+
+const wallet2Action = () => generateWalletTransaction({ wallet: wallet2, recipient: wallet3.publicKey, amount: 5 });
+
+const wallet3Action = () => generateWalletTransaction({ wallet: wallet3, recipient: wallet.publicKey, amount: 15 });
+
+for (let i = 0; i < 10; i++) {
+    if(i%3 === 0 ){
+        walletAction();
+        wallet2Action();
+    } else if(i%3 === 2) {
+        walletAction();
+        wallet3Action();
+    } else {
+        wallet2Action();
+        wallet3Action();
+    }
+
+    transactionMiner.mineTransactions();
+}
 
 let PEER_PORT;
 
@@ -92,6 +139,6 @@ const PORT = PEER_PORT || DEFAULT_PORT;
 app.listen(PORT, () => {
     console.log(`Listening on localhost: ${PORT}.`);
     if(PORT !== DEFAULT_PORT) {
-        syncChains();
+        syncWithRootState();
     }
 });
