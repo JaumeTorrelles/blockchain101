@@ -159,10 +159,8 @@ for (let i = 0; i < 10; i++) {
         wallet3Action();
     }
 
-    // Only mine every other iteration to leave some transactions in the pool
-    if (i % 2 === 1) {
-        transactionMiner.mineTransactions();
-    }
+    transactionMiner.mineTransactions();
+
 }
 
 let PEER_PORT;
