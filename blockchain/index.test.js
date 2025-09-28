@@ -1,14 +1,19 @@
 const Blockchain = require('./index')
 const Block = require('./block');
-const { hashOf } = require('../utils');
+const Wallet = require("../wallet");
+const Transaction = require("../wallet/transaction");
 
 describe('Blockchain', () => {
-    let blockchain, newChain, originalChain;
+    let blockchain, newChain, originalChain, errorMock;
 
     beforeEach(() => {
         blockchain = new Blockchain();
         newChain = new Blockchain();
         originalChain = blockchain.chain;
+
+        errorMock = jest.fn();
+
+        global.console.error = errorMock;
     })
 
     it('contains a `chain` array instance', () => {
@@ -67,7 +72,6 @@ describe('Blockchain', () => {
                     const nonce = 0;
                     const data = [];
                     const difficulty = lastBlock.difficulty - 3;
-                    const hash = hashOf(timestamp, lastHash, difficulty, nonce, data);
                     const maliciousBlock = new Block({timestamp, lastHash, difficulty, nonce, data});
 
                     blockchain.chain.push(maliciousBlock);
@@ -86,13 +90,11 @@ describe('Blockchain', () => {
 
     describe('replaceChain()', () => {
 
-        let errorMock, logMock;
+        let logMock;
 
         beforeEach( () => {
-            errorMock = jest.fn();
             logMock = jest.fn();
-            
-            global.console.error = errorMock;
+
             global.console.log = logMock;
         })
 
@@ -148,6 +150,99 @@ describe('Blockchain', () => {
                 it('logs chain replace', () => {
                     expect(logMock).toHaveBeenCalled();
                 });
+            });
+        });
+
+        describe('the `validateTransactions` flag is true', () => {
+            it('calls valid transaction data', () => {
+                const validateTransactionDataMock = jest.fn();
+
+                blockchain.validTransactionData = validateTransactionDataMock;
+
+                newChain.addBlock({data: 'whatever'});
+                blockchain.replaceChain(newChain.chain, true);
+
+                expect(validateTransactionDataMock).toHaveBeenCalled();
+            })
+        });
+    });
+
+    describe('validTransactionData()', () => {
+        let transaction, rewardTransaction, wallet;
+
+        beforeEach( () => {
+            wallet = new Wallet();
+            transaction = wallet.createTransaction({ recipient: 'rec1', amount: 100 });
+            rewardTransaction = Transaction.rewardTransaction({ minerWallet: wallet });
+        });
+
+        describe('the transaction data is valid', () => {
+            it('returns true', () => {
+                newChain.addBlock({data: [transaction, rewardTransaction]});
+
+                expect(blockchain.validTransactionData({ chain: newChain.chain })).toBe(true);
+            });
+        });
+
+        describe('the transaction data has multiple rewards', () => {
+            it('returns false and logs error', () => {
+                newChain.addBlock({data: [transaction, rewardTransaction, rewardTransaction]});
+
+                expect(blockchain.validTransactionData({ chain: newChain.chain })).toBe(false);
+                expect(errorMock).toHaveBeenCalled();
+            });
+        });
+
+        describe('the transaction data has at least one malformed outputMap', () => {
+            describe('the transaction is not a reward transaction', () => {
+                it('returns false and logs error', () => {
+                    transaction.outputMap[wallet.publicKey] = 8450892793045;
+
+                    newChain.addBlock({data: [transaction, rewardTransaction]});
+
+                    expect(blockchain.validTransactionData({ chain: newChain.chain })).toBe(false);
+                    expect(errorMock).toHaveBeenCalled();
+                });
+            });
+            describe('the transaction is a reward transaction', () => {
+                it('returns false and logs error', () => {
+                    rewardTransaction.outputMap[wallet.publicKey] = 8450892793045;
+
+                    newChain.addBlock({data: [transaction, rewardTransaction]});
+
+                    expect(blockchain.validTransactionData({ chain: newChain.chain })).toBe(false);
+                    expect(errorMock).toHaveBeenCalled();
+                });
+            });
+        });
+
+        describe('the transaction data has at least one malformed input', () => {
+            it('returns false and logs error', () => {
+                wallet.balance = 10000;
+
+                const maliciousOutputMap = { [wallet.publicKey]: 9000, recipient: 1000 };
+
+                const maliciousTransaction = { input: {
+                                                                            timestamp: Date.now(),
+                                                                            amount:wallet.balance,
+                                                                            address: wallet.publicKey,
+                                                                            signature: wallet.sign(maliciousOutputMap) }, outputMap: maliciousOutputMap
+                };
+
+                newChain.addBlock({data: [maliciousTransaction, rewardTransaction]});
+
+                expect(blockchain.validTransactionData({ chain: newChain.chain })).toBe(false);
+                expect(errorMock).toHaveBeenCalled();
+            });
+        });
+
+        describe('a block contains multiple identical transactions', () => {
+            it('returns false and logs error', () => {
+                newChain.addBlock({data: [transaction, transaction, transaction, rewardTransaction]});
+
+                expect(blockchain.validTransactionData({ chain: newChain.chain })).toBe(false);
+                expect(errorMock).toHaveBeenCalled();
+
             });
         });
     });
