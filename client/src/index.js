@@ -1,7 +1,17 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client';
+import { render } from 'react-dom';
+import { Router, Route, Switch } from 'react-router-dom';
+import history from "./history";
 import App from './components/App';
+import Blocks from './components/Blocks';
 import './index.css'
 
-const root = createRoot(document.getElementById('root'));
-root.render(<App/>);
+render(
+    <Router history={history}>
+        <Switch>
+            <Route exact path="/" component={App} />
+            <Route exact path="/blocks" component={Blocks} />
+        </Switch>
+    </Router>,
+    document.getElementById('root')
+);
