@@ -1,4 +1,4 @@
-# Blockchain101
+# blockchain101
 
 Another blockchain project? Groundbreaking.
 
