@@ -69,6 +69,39 @@ app.get('/api/mineTransactions', (req, res) => {
     res.redirect('/api/blocks');
 });
 
+app.get('/api/blocksLength', (req, res) => {
+    res.json(blockchain.chain.length);
+});
+
+app.get('/api/blocks/:id', (req, res) => {
+    const { id } = req.params;
+    const { length } = blockchain.chain;
+
+    const blocksReversed = blockchain.chain.slice().reverse();
+
+    let startIndex = (id-1) * 5;
+    let endIndex = id * 5;
+
+    startIndex = startIndex < length ? startIndex : length;
+    endIndex = endIndex < length ? endIndex : length;
+
+    res.json(blocksReversed.slice(startIndex, endIndex));
+});
+
+app.get('/api/knownAddresses', (req, res) => {
+    const addressMap = {};
+
+    for (let block of blockchain.chain) {
+        for (let transaction of block.data) {
+            const recipient = Object.keys(transaction.outputMap);
+
+            recipient.forEach(recipient => addressMap[recipient] = recipient);
+        }
+    }
+
+    res.json(Object.keys(addressMap));
+});
+
 app.get('/api/walletInfo', (req, res) => {
     const address = wallet.publicKey;
 
@@ -126,7 +159,10 @@ for (let i = 0; i < 10; i++) {
         wallet3Action();
     }
 
-    transactionMiner.mineTransactions();
+    // Only mine every other iteration to leave some transactions in the pool
+    if (i % 2 === 1) {
+        transactionMiner.mineTransactions();
+    }
 }
 
 let PEER_PORT;
